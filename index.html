@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="hi" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,79 +14,130 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- JsBarcode -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-2 sm:p-4 select-none">
+<body class="bg-slate-100 dark:bg-slate-900 min-h-screen flex flex-col items-center justify-between p-3 sm:p-6 select-none transition-colors duration-200">
 
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-5 my-2">
+    <div class="w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-5 my-auto transition-colors duration-200">
+        <!-- Header with Dark Mode & Install Button -->
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Barcode & QR Generator</h1>
-            <!-- Install App Button (Hidden by default, shows when installable) -->
-            <button id="installBtn" style="display: none;" onclick="installApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1">
-                📥 Install App
-            </button>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">Barcode & QR Generator</h1>
+                <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Pro Series Tool</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="installBtn" style="display: none;" onclick="installApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow transition flex items-center gap-1">
+                    📥 Install
+                </button>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-yellow-400 transition hover:scale-105">
+                    <span id="themeIcon">🌙</span>
+                </button>
+            </div>
         </div>
 
         <!-- Type Selector Tabs -->
-        <div class="flex mb-4 bg-slate-100 p-1 rounded-lg">
-            <button id="qrTab" onclick="switchTab('qr')" class="flex-1 py-2 text-sm font-semibold rounded-md bg-white text-indigo-600 shadow-sm transition">QR Code</button>
-            <button id="barcodeTab" onclick="switchTab('barcode')" class="flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 transition">Barcode</button>
+        <div class="flex mb-4 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
+            <button id="qrTab" onclick="switchTab('qr')" class="flex-1 py-2 text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition">QR Code</button>
+            <button id="barcodeTab" onclick="switchTab('barcode')" class="flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition">Barcode</button>
         </div>
 
         <!-- Input Field & Increment Controls -->
         <div class="mb-4">
-            <label class="block text-sm font-medium text-slate-700 mb-1">Text ya Code (Ex: BL04374264):</label>
-            <input type="text" id="inputText" value="BL04374264" oninput="generateCode()" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Text ya Code (Ex: Ab-zq-14333335):</label>
+            <input type="text" id="inputText" value="Ab-zq-14333335" oninput="generateCode()" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base">
         </div>
 
         <!-- Number Step Buttons (+1, +5, +10) -->
-        <div class="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <span class="block text-sm font-medium text-slate-700 mb-2">Number Increment/Decrement:</span>
+        <div class="mb-4 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+            <span class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Number Series Increment / Decrement:</span>
             <div class="flex flex-wrap gap-2">
-                <button onclick="modifyNumber(-10)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-sm font-semibold rounded-md transition active:scale-95">-10</button>
-                <button onclick="modifyNumber(-5)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-sm font-semibold rounded-md transition active:scale-95">-5</button>
-                <button onclick="modifyNumber(-1)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-sm font-semibold rounded-md transition active:scale-95">-1</button>
+                <button onclick="modifyNumber(-10)" class="px-3 py-1.5 bg-rose-100 dark:bg-rose-900/40 hover:bg-rose-200 text-rose-700 dark:text-rose-300 text-sm font-semibold rounded-md transition active:scale-95">-10</button>
+                <button onclick="modifyNumber(-5)" class="px-3 py-1.5 bg-rose-100 dark:bg-rose-900/40 hover:bg-rose-200 text-rose-700 dark:text-rose-300 text-sm font-semibold rounded-md transition active:scale-95">-5</button>
+                <button onclick="modifyNumber(-1)" class="px-3 py-1.5 bg-rose-100 dark:bg-rose-900/40 hover:bg-rose-200 text-rose-700 dark:text-rose-300 text-sm font-semibold rounded-md transition active:scale-95">-1</button>
                 <div class="flex-1"></div>
-                <button onclick="modifyNumber(1)" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold rounded-md transition active:scale-95">+1</button>
-                <button onclick="modifyNumber(5)" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold rounded-md transition active:scale-95">+5</button>
-                <button onclick="modifyNumber(10)" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold rounded-md transition active:scale-95">+10</button>
+                <button onclick="modifyNumber(1)" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-200 text-emerald-700 dark:text-emerald-300 text-sm font-semibold rounded-md transition active:scale-95">+1</button>
+                <button onclick="modifyNumber(5)" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-200 text-emerald-700 dark:text-emerald-300 text-sm font-semibold rounded-md transition active:scale-95">+5</button>
+                <button onclick="modifyNumber(10)" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-200 text-emerald-700 dark:text-emerald-300 text-sm font-semibold rounded-md transition active:scale-95">+10</button>
             </div>
         </div>
 
         <!-- Size Controls -->
-        <div class="flex items-center justify-between mb-5 bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <span class="text-sm font-medium text-slate-700">Code Size Control:</span>
+        <div class="flex items-center justify-between mb-5 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Code Size Control:</span>
             <div class="flex items-center space-x-3">
-                <button onclick="adjustSize(-20)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold w-8 h-8 rounded-lg flex items-center justify-center text-lg transition active:scale-95">-</button>
-                <span id="sizeDisplay" class="font-semibold text-slate-700 w-12 text-center text-sm">200px</span>
-                <button onclick="adjustSize(20)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold w-8 h-8 rounded-lg flex items-center justify-center text-lg transition active:scale-95">+</button>
+                <button onclick="adjustSize(-20)" class="bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 text-slate-800 dark:text-white font-bold w-8 h-8 rounded-lg flex items-center justify-center text-lg transition active:scale-95">-</button>
+                <span id="sizeDisplay" class="font-semibold text-slate-700 dark:text-slate-300 w-12 text-center text-sm">200px</span>
+                <button onclick="adjustSize(20)" class="bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 text-slate-800 dark:text-white font-bold w-8 h-8 rounded-lg flex items-center justify-center text-lg transition active:scale-95">+</button>
             </div>
         </div>
 
         <!-- Display Area for Codes -->
-        <div class="flex flex-col items-center justify-center min-h-[220px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-4 mb-5 overflow-hidden">
-            <div id="qrContainer" class="flex items-center justify-center"></div>
-            <div id="barcodeContainer" class="hidden w-full flex items-center justify-center overflow-x-auto">
+        <div class="flex flex-col items-center justify-center min-h-[220px] bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-4 mb-4 overflow-hidden">
+            <div id="qrContainer" class="flex items-center justify-center bg-white p-2 rounded-lg"></div>
+            <div id="barcodeContainer" class="hidden w-full flex items-center justify-center overflow-x-auto bg-white p-2 rounded-lg">
                 <svg id="barcodeElement"></svg>
             </div>
             <p id="placeholderText" class="text-sm text-slate-400 hidden">Code yahan dikhai dega</p>
         </div>
 
+        <!-- Recent History Section -->
+        <div class="mb-4">
+            <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Recent Generated:</span>
+                <button onclick="clearHistory()" class="text-xs text-rose-500 hover:underline">Clear</button>
+            </div>
+            <div id="historyList" class="flex gap-1.5 overflow-x-auto pb-1">
+                <!-- History chips will appear here -->
+            </div>
+        </div>
+
         <!-- Download Button -->
         <button id="downloadBtn" onclick="downloadCode()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-md transition active:scale-[0.98]">
-            Download Code
+            Download Code File
         </button>
     </div>
+
+    <!-- Professional Footer with Creator Name -->
+    <footer class="w-full text-center py-2 text-xs text-slate-500 dark:text-slate-400">
+        Designed & Developed by <span class="font-semibold text-indigo-600 dark:text-indigo-400">Nandesh Sonwane</span> 🚀
+    </footer>
 
     <script>
         let currentType = 'qr';
         let currentSize = 200;
         let deferredPrompt;
+        let historyArray = JSON.parse(localStorage.getItem('codeHistory')) || [];
 
-        // PWA Install Prompt Capture
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.innerText = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.innerText = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('themeIcon').innerText = '☀️';
+        }
+
+        // PWA Install Prompt
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -98,10 +149,9 @@
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
+                        document.getElementById('installBtn').style.display = 'none';
                     }
                     deferredPrompt = null;
-                    document.getElementById('installBtn').style.display = 'none';
                 });
             }
         }
@@ -114,13 +164,13 @@
             const barcodeContainer = document.getElementById('barcodeContainer');
 
             if (type === 'qr') {
-                qrTab.className = "flex-1 py-2 text-sm font-semibold rounded-md bg-white text-indigo-600 shadow-sm transition";
-                barcodeTab.className = "flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 transition";
+                qrTab.className = "flex-1 py-2 text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition";
+                barcodeTab.className = "flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition";
                 qrContainer.classList.remove('hidden');
                 barcodeContainer.classList.add('hidden');
             } else {
-                barcodeTab.className = "flex-1 py-2 text-sm font-semibold rounded-md bg-white text-indigo-600 shadow-sm transition";
-                qrTab.className = "flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 transition";
+                barcodeTab.className = "flex-1 py-2 text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition";
+                qrTab.className = "flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition";
                 barcodeContainer.classList.remove('hidden');
                 qrContainer.classList.add('hidden');
             }
@@ -148,7 +198,7 @@
         function adjustSize(amount) {
             currentSize += amount;
             if (currentSize < 100) currentSize = 100;
-            if (currentSize > 350) currentSize = 350;
+            if (currentSize > 320) currentSize = 320;
 
             document.getElementById('sizeDisplay').innerText = currentSize + 'px';
             generateCode();
@@ -187,13 +237,46 @@
                     JsBarcode("#barcodeElement", text, {
                         format: "CODE128",
                         width: Math.max(1, Math.floor(currentSize / 120)),
-                        height: Math.floor(currentSize * 0.6),
+                        height: Math.floor(currentSize * 0.5),
                         displayValue: true
                     });
                 } catch (e) {
                     console.error("Barcode error:", e);
                 }
             }
+
+            // Save to history
+            addToHistory(text);
+        }
+
+        function addToHistory(text) {
+            if (!historyArray.includes(text)) {
+                historyArray.unshift(text);
+                if (historyArray.length > 8) historyArray.pop();
+                localStorage.setItem('codeHistory', JSON.stringify(historyArray));
+            }
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            container.innerHTML = '';
+            historyArray.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = "px-2.5 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-slate-700 dark:text-slate-300 text-xs rounded-md whitespace-nowrap transition";
+                btn.innerText = item;
+                btn.onclick = () => {
+                    document.getElementById('inputText').value = item;
+                    generateCode();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function clearHistory() {
+            historyArray = [];
+            localStorage.removeItem('codeHistory');
+            renderHistory();
         }
 
         function downloadCode() {
@@ -224,14 +307,15 @@
             document.body.removeChild(downloadLink);
         }
 
-        // Register Service Worker for offline support
+        // Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
             });
         }
 
         window.onload = function() {
+            renderHistory();
             generateCode();
         };
     </script>
