@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barcode & QR Series Generator</title>
+    <title>Warehouse Location Roller Generator</title>
     
     <!-- PWA Manifest Link -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CodeGen App">
+    <meta name="apple-mobile-web-app-title" content="LocRoller">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,6 +23,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- JsBarcode -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-900 min-h-screen flex flex-col items-center justify-between p-3 sm:p-6 select-none transition-colors duration-200">
 
@@ -30,8 +35,8 @@
         <!-- Header with Dark Mode & Install Button -->
         <div class="flex justify-between items-center mb-4">
             <div>
-                <h1 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">Barcode & QR Generator</h1>
-                <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Pro Series Tool</p>
+                <h1 class="text-xl font-bold text-slate-800 dark:text-white">Location Roller Picker</h1>
+                <p class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Scroll & Step Tool</p>
             </div>
             <div class="flex items-center gap-2">
                 <button id="installBtn" style="display: none;" onclick="installApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow transition flex items-center gap-1">
@@ -43,62 +48,131 @@
             </div>
         </div>
 
-        <!-- Type Selector Tabs -->
-        <div class="flex mb-4 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
-            <button id="qrTab" onclick="switchTab('qr')" class="flex-1 py-2 text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition">QR Code</button>
-            <button id="barcodeTab" onclick="switchTab('barcode')" class="flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition">Barcode</button>
+        <!-- Mode Selector -->
+        <div class="grid grid-cols-2 gap-2 mb-4 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
+            <button id="modeSingle" onclick="switchMode('single')" class="py-2 text-xs sm:text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition">Single Location</button>
+            <button id="modeBagGen" onclick="switchMode('baggen')" class="py-2 text-xs sm:text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition">Bag & Location</button>
         </div>
 
-        <!-- Input Field & Increment Controls -->
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Text ya Code (Ex: Ab-zq-14333335):</label>
-            <input type="text" id="inputText" value="Ab-zq-14333335" oninput="generateCode()" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base">
+        <!-- Type Selector Tabs (Single Mode) -->
+        <div id="typeSelectorTab" class="flex mb-4 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
+            <button id="qrTab" onclick="switchType('qr')" class="flex-1 py-1.5 text-xs font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition">QR Code</button>
+            <button id="barcodeTab" onclick="switchType('barcode')" class="flex-1 py-1.5 text-xs font-semibold rounded-md text-slate-600 dark:text-slate-300 transition">Barcode</button>
         </div>
 
-        <!-- Number Step Buttons (+1, +5, +10) -->
-        <div class="mb-4 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
-            <span class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Number Series Increment / Decrement:</span>
-            <div class="flex flex-wrap gap-2">
-                <button onclick="modifyNumber(-10)" class="px-3 py-1.5 bg-rose-100 dark:bg-rose-900/40 hover:bg-rose-200 text-rose-700 dark:text-rose-300 text-sm font-semibold rounded-md transition active:scale-95">-10</button>
-                <button onclick="modifyNumber(-5)" class="px-3 py-1.5 bg-rose-100 dark:bg-rose-900/40 hover:bg-rose-200 text-rose-700 dark:text-rose-300 text-sm font-semibold rounded-md transition active:scale-95">-5</button>
-                <button onclick="modifyNumber(-1)" class="px-3 py-1.5 bg-rose-100 dark:bg-rose-900/40 hover:bg-rose-200 text-rose-700 dark:text-rose-300 text-sm font-semibold rounded-md transition active:scale-95">-1</button>
-                <div class="flex-1"></div>
-                <button onclick="modifyNumber(1)" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-200 text-emerald-700 dark:text-emerald-300 text-sm font-semibold rounded-md transition active:scale-95">+1</button>
-                <button onclick="modifyNumber(5)" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-200 text-emerald-700 dark:text-emerald-300 text-sm font-semibold rounded-md transition active:scale-95">+5</button>
-                <button onclick="modifyNumber(10)" class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-200 text-emerald-700 dark:text-emerald-300 text-sm font-semibold rounded-md transition active:scale-95">+10</button>
+        <!-- CLOCK / ALARM STYLE ROLLER PICKERS FOR LOCATION -->
+        <div class="mb-3 bg-slate-900 text-white p-3 rounded-xl shadow-inner">
+            <label class="block text-[11px] text-slate-400 mb-2 text-center uppercase tracking-wider">Scroll Wheels (Location Code)</label>
+            
+            <div class="flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto py-2">
+                <div class="flex flex-col items-center">
+                    <select id="wheelFloor" onchange="updateLocationFromRollers()" class="bg-slate-800 text-indigo-400 font-mono font-bold text-sm py-2 px-1 rounded border border-slate-700 focus:outline-none">
+                        <option value="L0">L0</option>
+                        <option value="L1">L1</option>
+                        <option value="L2">L2</option>
+                    </select>
+                </div>
+                <span class="text-slate-500 font-bold">-</span>
+                <div class="flex flex-col items-center">
+                    <select id="wheelAisle" onchange="updateLocationFromRollers()" class="bg-slate-800 text-white font-mono font-bold text-sm py-2 px-1 rounded border border-slate-700 focus:outline-none"></select>
+                </div>
+                <span class="text-slate-500 font-bold">-</span>
+                <div class="flex flex-col items-center">
+                    <select id="wheelRack" onchange="updateLocationFromRollers()" class="bg-slate-800 text-white font-mono font-bold text-sm py-2 px-1 rounded border border-slate-700 focus:outline-none"></select>
+                </div>
+                <span class="text-slate-500 font-bold">-</span>
+                <div class="flex flex-col items-center">
+                    <select id="wheelShelf" onchange="updateLocationFromRollers()" class="bg-slate-800 text-white font-mono font-bold text-sm py-2 px-1 rounded border border-slate-700 focus:outline-none"></select>
+                </div>
+                <span class="text-slate-500 font-bold">-</span>
+                <div class="flex flex-col items-center">
+                    <select id="wheelBin" onchange="updateLocationFromRollers()" class="bg-slate-800 text-emerald-400 font-mono font-bold text-sm py-2 px-2 rounded border border-slate-700 focus:outline-none"></select>
+                </div>
+            </div>
+
+            <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-[10px] text-slate-400">Current Location:</span>
+                <input type="text" id="inputText" value="L0-A001-012-03-C" oninput="syncRollersFromInput()" class="bg-transparent text-right text-emerald-400 font-mono font-bold text-xs focus:outline-none w-48">
+            </div>
+        </div>
+
+        <!-- Location Step Buttons (+/-) -->
+        <div class="mb-4 bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Location Step (+/-):</span>
+            <div class="flex gap-1">
+                <button onclick="modifyLocation(-10)" class="px-2 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded">-10</button>
+                <button onclick="modifyLocation(-5)" class="px-2.5 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded">-5</button>
+                <button onclick="modifyLocation(-1)" class="px-2.5 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded">-1</button>
+                <button onclick="modifyLocation(1)" class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded">+1</button>
+                <button onclick="modifyLocation(5)" class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded">+5</button>
+                <button onclick="modifyLocation(10)" class="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded">+10</button>
+            </div>
+        </div>
+
+        <!-- Extra Bag Input (Bag & General Mode) with Step Buttons -->
+        <div id="bagInputBox" class="mb-4 hidden bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Bag ID / Code:</label>
+            <input type="text" id="bagInputText" value="BAG-0150" oninput="generateCode()" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none text-sm font-mono mb-2">
+            
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-medium text-slate-500">Bag Step (+/-):</span>
+                <div class="flex gap-1">
+                    <button onclick="modifyBag(-10)" class="px-2 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded">-10</button>
+                    <button onclick="modifyBag(-5)" class="px-2.5 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded">-5</button>
+                    <button onclick="modifyBag(-1)" class="px-2.5 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded">-1</button>
+                    <button onclick="modifyBag(1)" class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded">+1</button>
+                    <button onclick="modifyBag(5)" class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded">+5</button>
+                    <button onclick="modifyBag(10)" class="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded">+10</button>
+                </div>
             </div>
         </div>
 
         <!-- Size Controls -->
-        <div class="flex items-center justify-between mb-5 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
-            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Code Size Control:</span>
-            <div class="flex items-center space-x-3">
-                <button onclick="adjustSize(-20)" class="bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 text-slate-800 dark:text-white font-bold w-8 h-8 rounded-lg flex items-center justify-center text-lg transition active:scale-95">-</button>
-                <span id="sizeDisplay" class="font-semibold text-slate-700 dark:text-slate-300 w-12 text-center text-sm">200px</span>
-                <button onclick="adjustSize(20)" class="bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 text-slate-800 dark:text-white font-bold w-8 h-8 rounded-lg flex items-center justify-center text-lg transition active:scale-95">+</button>
+        <div class="flex items-center justify-between mb-4 bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700">
+            <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Code Size Control:</span>
+            <div class="flex items-center space-x-2">
+                <button onclick="adjustSize(-20)" class="bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-white font-bold w-7 h-7 rounded flex items-center justify-center text-sm transition active:scale-95">-</button>
+                <span id="sizeDisplay" class="font-semibold text-slate-700 dark:text-slate-300 w-10 text-center text-xs">160px</span>
+                <button onclick="adjustSize(20)" class="bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-white font-bold w-7 h-7 rounded flex items-center justify-center text-sm transition active:scale-95">+</button>
             </div>
         </div>
 
         <!-- Display Area for Codes -->
-        <div class="flex flex-col items-center justify-center min-h-[220px] bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-4 mb-4 overflow-hidden">
-            <div id="qrContainer" class="flex items-center justify-center bg-white p-2 rounded-lg"></div>
-            <div id="barcodeContainer" class="hidden w-full flex items-center justify-center overflow-x-auto bg-white p-2 rounded-lg">
-                <svg id="barcodeElement"></svg>
+        <div class="flex flex-col items-center justify-center min-h-[200px] bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-3 mb-4 overflow-hidden">
+            <div id="singleContainer" class="flex flex-col items-center justify-center">
+                <div id="qrContainer" class="flex items-center justify-center bg-white p-2 rounded-lg"></div>
+                <div id="barcodeContainer" class="hidden w-full flex items-center justify-center overflow-x-auto bg-white p-2 rounded-lg">
+                    <svg id="barcodeElement"></svg>
+                </div>
             </div>
-            <p id="placeholderText" class="text-sm text-slate-400 hidden">Code yahan dikhai dega</p>
+
+            <div id="dualContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <div class="flex flex-col items-center bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mb-1">BAG QR</span>
+                    <div id="bagQrContainer" class="flex items-center justify-center"></div>
+                    <span id="bagTextLabel" class="text-[10px] text-slate-500 mt-1 font-mono"></span>
+                </div>
+                <div class="flex flex-col items-center bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mb-1">GENERAL LOCATION QR</span>
+                    <div id="genQrContainer" class="flex items-center justify-center"></div>
+                    <span id="genTextLabel" class="text-[10px] text-slate-500 mt-1 font-mono"></span>
+                </div>
+            </div>
+
+            <p id="placeholderText" class="text-xs text-slate-400 hidden">Code yahan dikhai dega</p>
         </div>
 
         <!-- Recent History Section -->
         <div class="mb-4">
-            <div class="flex justify-between items-center mb-1.5">
-                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Recent Generated:</span>
-                <button onclick="clearHistory()" class="text-xs text-rose-500 hover:underline">Clear</button>
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Recent Generated:</span>
+                <button onclick="clearHistory()" class="text-[11px] text-rose-500 hover:underline">Clear</button>
             </div>
             <div id="historyList" class="flex gap-1.5 overflow-x-auto pb-1"></div>
         </div>
 
         <!-- Download Button -->
-        <button id="downloadBtn" onclick="downloadCode()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-md transition active:scale-[0.98]">
+        <button id="downloadBtn" onclick="downloadCode()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg shadow-md transition active:scale-[0.98] text-sm">
             Download Code File
         </button>
     </div>
@@ -109,10 +183,104 @@
     </footer>
 
     <script>
+        let currentMode = 'single';
         let currentType = 'qr';
-        let currentSize = 200;
+        let currentSize = 160;
         let deferredPrompt;
         let historyArray = JSON.parse(localStorage.getItem('codeHistory')) || [];
+
+        function initRollers() {
+            const aisleSelect = document.getElementById('wheelAisle');
+            for (let i = 1; i <= 50; i++) {
+                let val = 'A' + String(i).padStart(3, '0');
+                let opt = document.createElement('option');
+                opt.value = val; opt.innerText = val;
+                aisleSelect.appendChild(opt);
+            }
+            const rackSelect = document.getElementById('wheelRack');
+            for (let i = 1; i <= 50; i++) {
+                let val = String(i).padStart(3, '0');
+                let opt = document.createElement('option');
+                opt.value = val; opt.innerText = val;
+                rackSelect.appendChild(opt);
+            }
+            const shelfSelect = document.getElementById('wheelShelf');
+            for (let i = 1; i <= 10; i++) {
+                let val = String(i).padStart(2, '0');
+                let opt = document.createElement('option');
+                opt.value = val; opt.innerText = val;
+                shelfSelect.appendChild(opt);
+            }
+            const binSelect = document.getElementById('wheelBin');
+            for (let i = 65; i <= 90; i++) {
+                let val = String.fromCharCode(i);
+                let opt = document.createElement('option');
+                opt.value = val; opt.innerText = val;
+                binSelect.appendChild(opt);
+            }
+        }
+
+        function updateLocationFromRollers() {
+            let floor = document.getElementById('wheelFloor').value;
+            let aisle = document.getElementById('wheelAisle').value;
+            let rack = document.getElementById('wheelRack').value;
+            let shelf = document.getElementById('wheelShelf').value;
+            let bin = document.getElementById('wheelBin').value;
+
+            let fullLocation = `${floor}-${aisle}-${rack}-${shelf}-${bin}`;
+            document.getElementById('inputText').value = fullLocation;
+            generateCode();
+        }
+
+        function syncRollersFromInput() {
+            let val = document.getElementById('inputText').value.trim();
+            let parts = val.split('-');
+            if (parts.length === 5) {
+                document.getElementById('wheelFloor').value = parts[0];
+                document.getElementById('wheelAisle').value = parts[1];
+                document.getElementById('wheelRack').value = parts[2];
+                document.getElementById('wheelShelf').value = parts[3];
+                document.getElementById('wheelBin').value = parts[4];
+            }
+            generateCode();
+        }
+
+        function modifyLocation(step) {
+            const inputField = document.getElementById('inputText');
+            let text = inputField.value;
+            let alphaMatch = text.match(/([A-Za-z])$/);
+            if (alphaMatch) {
+                let char = alphaMatch[1];
+                let newChar = String.fromCharCode(char.charCodeAt(0) + step);
+                inputField.value = text.replace(/([A-Za-z])$/, newChar);
+            } else {
+                let match = text.match(/(\d+)$/);
+                if (match) {
+                    let numStr = match[1];
+                    let num = parseInt(numStr, 10) + step;
+                    if (num < 0) num = 0;
+                    inputField.value = text.replace(/(\d+)$/, String(num).padStart(numStr.length, '0'));
+                } else {
+                    inputField.value = text + step;
+                }
+            }
+            syncRollersFromInput();
+        }
+
+        function modifyBag(step) {
+            const inputField = document.getElementById('bagInputText');
+            let text = inputField.value;
+            let match = text.match(/(\d+)$/);
+            if (match) {
+                let numStr = match[1];
+                let num = parseInt(numStr, 10) + step;
+                if (num < 0) num = 0;
+                inputField.value = text.replace(/(\d+)$/, String(num).padStart(numStr.length, '0'));
+            } else {
+                inputField.value = text + step;
+            }
+            generateCode();
+        }
 
         function toggleDarkMode() {
             const html = document.documentElement;
@@ -151,7 +319,34 @@
             }
         }
 
-        function switchTab(type) {
+        function switchMode(mode) {
+            currentMode = mode;
+            const btnSingle = document.getElementById('modeSingle');
+            const btnBagGen = document.getElementById('modeBagGen');
+            const bagInputBox = document.getElementById('bagInputBox');
+            const typeSelectorTab = document.getElementById('typeSelectorTab');
+            const singleContainer = document.getElementById('singleContainer');
+            const dualContainer = document.getElementById('dualContainer');
+
+            if (mode === 'single') {
+                btnSingle.className = "py-2 text-xs sm:text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition";
+                btnBagGen.className = "py-2 text-xs sm:text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition";
+                bagInputBox.classList.add('hidden');
+                typeSelectorTab.classList.remove('hidden');
+                singleContainer.classList.remove('hidden');
+                dualContainer.classList.add('hidden');
+            } else {
+                btnBagGen.className = "py-2 text-xs sm:text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition";
+                btnSingle.className = "py-2 text-xs sm:text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition";
+                bagInputBox.classList.remove('hidden');
+                typeSelectorTab.classList.add('hidden');
+                singleContainer.classList.add('hidden');
+                dualContainer.classList.remove('hidden');
+            }
+            generateCode();
+        }
+
+        function switchType(type) {
             currentType = type;
             const qrTab = document.getElementById('qrTab');
             const barcodeTab = document.getElementById('barcodeTab');
@@ -159,33 +354,15 @@
             const barcodeContainer = document.getElementById('barcodeContainer');
 
             if (type === 'qr') {
-                qrTab.className = "flex-1 py-2 text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition";
-                barcodeTab.className = "flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition";
+                qrTab.className = "flex-1 py-1.5 text-xs font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition";
+                barcodeTab.className = "flex-1 py-1.5 text-xs font-semibold rounded-md text-slate-600 dark:text-slate-300 transition";
                 qrContainer.classList.remove('hidden');
                 barcodeContainer.classList.add('hidden');
             } else {
-                barcodeTab.className = "flex-1 py-2 text-sm font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition";
-                qrTab.className = "flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 dark:text-slate-300 transition";
+                barcodeTab.className = "flex-1 py-1.5 text-xs font-semibold rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm transition";
+                qrTab.className = "flex-1 py-1.5 text-xs font-semibold rounded-md text-slate-600 dark:text-slate-300 transition";
                 barcodeContainer.classList.remove('hidden');
                 qrContainer.classList.add('hidden');
-            }
-            generateCode();
-        }
-
-        function modifyNumber(step) {
-            const inputField = document.getElementById('inputText');
-            let text = inputField.value;
-            let match = text.match(/(\d+)$/);
-
-            if (match) {
-                let numStr = match[1];
-                let numLength = numStr.length;
-                let num = parseInt(numStr, 10) + step;
-                if (num < 0) num = 0;
-                let newNumStr = String(num).padStart(numLength, '0');
-                inputField.value = text.replace(/(\d+)$/, newNumStr);
-            } else {
-                inputField.value = text + step;
             }
             generateCode();
         }
@@ -193,22 +370,18 @@
         function adjustSize(amount) {
             currentSize += amount;
             if (currentSize < 100) currentSize = 100;
-            if (currentSize > 320) currentSize = 320;
-
+            if (currentSize > 250) currentSize = 250;
             document.getElementById('sizeDisplay').innerText = currentSize + 'px';
             generateCode();
         }
 
         function generateCode() {
             const text = document.getElementById('inputText').value.trim();
-            const qrContainer = document.getElementById('qrContainer');
-            const barcodeElement = document.getElementById('barcodeElement');
+            const bagText = document.getElementById('bagInputText').value.trim();
             const placeholderText = document.getElementById('placeholderText');
             const downloadBtn = document.getElementById('downloadBtn');
 
             if (!text) {
-                qrContainer.innerHTML = '';
-                barcodeElement.innerHTML = '';
                 placeholderText.style.display = 'block';
                 downloadBtn.classList.add('hidden');
                 return;
@@ -217,27 +390,36 @@
             placeholderText.style.display = 'none';
             downloadBtn.classList.remove('hidden');
 
-            if (currentType === 'qr') {
-                qrContainer.innerHTML = '';
-                new QRCode(qrContainer, {
-                    text: text,
-                    width: currentSize,
-                    height: currentSize,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-            } else {
-                try {
-                    JsBarcode("#barcodeElement", text, {
-                        format: "CODE128",
-                        width: Math.max(1, Math.floor(currentSize / 120)),
-                        height: Math.floor(currentSize * 0.5),
-                        displayValue: true
+            if (currentMode === 'single') {
+                if (currentType === 'qr') {
+                    document.getElementById('qrContainer').innerHTML = '';
+                    new QRCode(document.getElementById('qrContainer'), {
+                        text: text, width: currentSize, height: currentSize,
+                        colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
                     });
-                } catch (e) {
-                    console.error("Barcode error:", e);
+                } else {
+                    try {
+                        JsBarcode("#barcodeElement", text, {
+                            format: "CODE128", width: Math.max(1, Math.floor(currentSize / 140)),
+                            height: Math.floor(currentSize * 0.5), displayValue: true
+                        });
+                    } catch (e) { console.error(e); }
                 }
+            } else {
+                document.getElementById('bagQrContainer').innerHTML = '';
+                document.getElementById('genQrContainer').innerHTML = '';
+
+                new QRCode(document.getElementById('bagQrContainer'), {
+                    text: bagText, width: currentSize - 20, height: currentSize - 20,
+                    colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+                });
+                document.getElementById('bagTextLabel').innerText = bagText;
+
+                new QRCode(document.getElementById('genQrContainer'), {
+                    text: text, width: currentSize - 20, height: currentSize - 20,
+                    colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+                });
+                document.getElementById('genTextLabel').innerText = text;
             }
             addToHistory(text);
         }
@@ -256,11 +438,11 @@
             container.innerHTML = '';
             historyArray.forEach(item => {
                 const btn = document.createElement('button');
-                btn.className = "px-2.5 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-slate-700 dark:text-slate-300 text-xs rounded-md whitespace-nowrap transition";
+                btn.className = "px-2 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-indigo-100 text-slate-700 dark:text-slate-300 font-mono text-[11px] rounded whitespace-nowrap transition";
                 btn.innerText = item;
                 btn.onclick = () => {
                     document.getElementById('inputText').value = item;
-                    generateCode();
+                    syncRollersFromInput();
                 };
                 container.appendChild(btn);
             });
@@ -276,37 +458,50 @@
             const text = document.getElementById('inputText').value.trim();
             if (!text) return;
 
-            if (currentType === 'qr') {
-                const img = document.querySelector('#qrContainer img') || document.querySelector('#qrContainer canvas');
-                if (img) {
-                    let imageURL = img.tagName === "CANVAS" ? img.toDataURL("image/png") : img.src;
-                    triggerDownload(imageURL, `${text}_qr.png`);
+            if (currentMode === 'single') {
+                if (currentType === 'qr') {
+                    const img = document.querySelector('#qrContainer img') || document.querySelector('#qrContainer canvas');
+                    if (img) {
+                        triggerDownload(img.tagName === "CANVAS" ? img.toDataURL("image/png") : img.src, `${text}_qr.png`);
+                    }
+                } else {
+                    const svg = document.getElementById('barcodeElement');
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    triggerDownload(URL.createObjectURL(new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'})), `${text}_barcode.svg`);
                 }
             } else {
-                const svg = document.getElementById('barcodeElement');
-                const svgData = new XMLSerializer().serializeToString(svg);
-                const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
-                const blobURL = URL.createObjectURL(svgBlob);
-                triggerDownload(blobURL, `${text}_barcode.svg`);
+                const bagImg = document.querySelector('#bagQrContainer img') || document.querySelector('#bagQrContainer canvas');
+                const genImg = document.querySelector('#genQrContainer img') || document.querySelector('#genQrContainer canvas');
+                if (bagImg) {
+                    triggerDownload(bagImg.tagName === "CANVAS" ? bagImg.toDataURL("image/png") : bagImg.src, `Bag_${document.getElementById('bagInputText').value.trim()}_qr.png`);
+                }
+                setTimeout(() => {
+                    if (genImg) {
+                        triggerDownload(genImg.tagName === "CANVAS" ? genImg.toDataURL("image/png") : genImg.src, `Location_${text}_qr.png`);
+                    }
+                }, 500);
             }
         }
 
         function triggerDownload(url, filename) {
-            const downloadLink = document.createElement('a');
-            downloadLink.href = url;
-            downloadLink.download = filename;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
             });
         }
 
         window.onload = function() {
+            initRollers();
+            document.getElementById('wheelFloor').value = 'L0';
+            document.getElementById('wheelAisle').value = 'A006';
+            document.getElementById('wheelRack').value = '003';
+            document.getElementById('wheelShelf').value = '05';
+            document.getElementById('wheelBin').value = 'C';
             renderHistory();
             generateCode();
         };
