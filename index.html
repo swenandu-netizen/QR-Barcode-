@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode & QR Series Generator</title>
+    
+    <!-- PWA Meta Tags for App Feel -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Code Generator">
+
+    <!-- Inline Web App Manifest -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+        %22name%22: %22Barcode & QR Series Generator%22,
+        %22short_name%22: %22CodeGen%22,
+        %22start_url%22: %22./index.html%22,
+        %22display%22: %22standalone%22,
+        %22background_color%22: %22#f1f5f9%22,
+        %22theme_color%22: %22#4f46e5%22,
+        %22icons%22: [
+            {
+                %22src%22: %22https://cdn-icons-png.flaticon.com/512/1048/1048953.png%22,
+                %22sizes%22: %22512x512%22,
+                %22type%22: %22image/png%22,
+                %22purpose%22: %22any maskable%22
+            }
+        ]
+    }">
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- JsBarcode Library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-2 sm:p-4 select-none">
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-5 my-2">
+        <h1 class="text-xl sm:text-2xl font-bold text-center text-slate-800 mb-4">Barcode & QR Series Generator</h1>
+
+        <!-- Type Selector Tabs -->
+        <div class="flex mb-4 bg-slate-100 p-1 rounded-lg">
+            <button id="qrTab" onclick="switchTab('qr')" class="flex-1 py-2 text-sm font-semibold rounded-md bg-white text-indigo-600 shadow-sm transition">QR Code</button>
+            <button id="barcodeTab" onclick="switchTab('barcode')" class="flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 transition">Barcode</button>
+        </div>
+
+        <!-- Input Field & Increment Controls -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Text ya Code (Ex: Ab-zq-14333335):</label>
+            <div class="flex gap-2">
+                <input type="text" id="inputText" value="Ab-zq-14333335" oninput="generateCode()" class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base">
+            </div>
+        </div>
+
+        <!-- Number Step Buttons (+1, +5, +10) -->
+        <div class="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <span class="block text-sm font-medium text-slate-700 mb-2">Number Increment/Decrement (+ / -):</span>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="modifyNumber(-10)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-sm font-semibold rounded-md transition active:scale-95">-10</button>
+                <button onclick="modifyNumber(-5)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-sm font-semibold rounded-md transition active:scale-95">-5</button>
+                <button onclick="modifyNumber(-1)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-sm font-semibold rounded-md transition active:scale-95">-1</button>
+                <div class="flex-1"></div>
+                <button onclick="modifyNumber(1)" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold rounded-md transition active:scale-95">+1</button>
+                <button onclick="modifyNumber(5)" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold rounded-md transition active:scale-95">+5</button>
+                <button onclick="modifyNumber(10)" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold rounded-md transition active:scale-95">+10</button>
+            </div>
+        </div>
+
+        <!-- Size Controls -->
+        <div class="flex items-center justify-between mb-5 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <span class="text-sm font-medium text-slate-700">Code Size Control:</span>
+            <div class="flex items-center space-x-3">
+                <button onclick="adjustSize(-20)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold w-8 h-8 rounded-lg flex items-center justify-center text-lg transition active:scale-95">-</button>
+                <span id="sizeDisplay" class="font-semibold text-slate-700 w-12 text-center text-sm">200px</span>
+                <button onclick="adjustSize(20)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold w-8 h-8 rounded-lg flex items-center justify-center text-lg transition active:scale-95">+</button>
+            </div>
+        </div>
+
+        <!-- Display Area for Codes -->
+        <div class="flex flex-col items-center justify-center min-h-[220px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-4 mb-5 overflow-hidden">
+            <div id="qrContainer" class="flex items-center justify-center"></div>
+            <div id="barcodeContainer" class="hidden w-full flex items-center justify-center overflow-x-auto">
+                <svg id="barcodeElement"></svg>
+            </div>
+            <p id="placeholderText" class="text-sm text-slate-400 hidden">Code yahan dikhai dega</p>
+        </div>
+
+        <!-- Download Button -->
+        <button id="downloadBtn" onclick="downloadCode()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-md transition active:scale-[0.98]">
+            Download Code
+        </button>
+    </div>
+
+    <script>
+        let currentType = 'qr';
+        let currentSize = 200;
+
+        function switchTab(type) {
+            currentType = type;
+            const qrTab = document.getElementById('qrTab');
+            const barcodeTab = document.getElementById('barcodeTab');
+            const qrContainer = document.getElementById('qrContainer');
+            const barcodeContainer = document.getElementById('barcodeContainer');
+
+            if (type === 'qr') {
+                qrTab.className = "flex-1 py-2 text-sm font-semibold rounded-md bg-white text-indigo-600 shadow-sm transition";
+                barcodeTab.className = "flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 transition";
+                qrContainer.classList.remove('hidden');
+                barcodeContainer.classList.add('hidden');
+            } else {
+                barcodeTab.className = "flex-1 py-2 text-sm font-semibold rounded-md bg-white text-indigo-600 shadow-sm transition";
+                qrTab.className = "flex-1 py-2 text-sm font-semibold rounded-md text-slate-600 transition";
+                barcodeContainer.classList.remove('hidden');
+                qrContainer.classList.add('hidden');
+            }
+            generateCode();
+        }
+
+        function modifyNumber(step) {
+            const inputField = document.getElementById('inputText');
+            let text = inputField.value;
+            let match = text.match(/(\d+)$/);
+
+            if (match) {
+                let numStr = match[1];
+                let numLength = numStr.length;
+                let num = parseInt(numStr, 10) + step;
+                if (num < 0) num = 0;
+                let newNumStr = String(num).padStart(numLength, '0');
+                inputField.value = text.replace(/(\d+)$/, newNumStr);
+            } else {
+                inputField.value = text + step;
+            }
+            generateCode();
+        }
+
+        function adjustSize(amount) {
+            currentSize += amount;
+            if (currentSize < 100) currentSize = 100;
+            if (currentSize > 350) currentSize = 350;
+
+            document.getElementById('sizeDisplay').innerText = currentSize + 'px';
+            generateCode();
+        }
+
+        function generateCode() {
+            const text = document.getElementById('inputText').value.trim();
+            const qrContainer = document.getElementById('qrContainer');
+            const barcodeElement = document.getElementById('barcodeElement');
+            const placeholderText = document.getElementById('placeholderText');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            if (!text) {
+                qrContainer.innerHTML = '';
+                barcodeElement.innerHTML = '';
+                placeholderText.style.display = 'block';
+                downloadBtn.classList.add('hidden');
+                return;
+            }
+
+            placeholderText.style.display = 'none';
+            downloadBtn.classList.remove('hidden');
+
+            if (currentType === 'qr') {
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: text,
+                    width: currentSize,
+                    height: currentSize,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } else {
+                try {
+                    JsBarcode("#barcodeElement", text, {
+                        format: "CODE128",
+                        width: Math.max(1, Math.floor(currentSize / 120)),
+                        height: Math.floor(currentSize * 0.6),
+                        displayValue: true
+                    });
+                } catch (e) {
+                    console.error("Barcode error:", e);
+                }
+            }
+        }
+
+        function downloadCode() {
+            const text = document.getElementById('inputText').value.trim();
+            if (!text) return;
+
+            if (currentType === 'qr') {
+                const img = document.querySelector('#qrContainer img') || document.querySelector('#qrContainer canvas');
+                if (img) {
+                    let imageURL = img.tagName === "CANVAS" ? img.toDataURL("image/png") : img.src;
+                    triggerDownload(imageURL, `${text}_qr.png`);
+                }
+            } else {
+                const svg = document.getElementById('barcodeElement');
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+                const blobURL = URL.createObjectURL(svgBlob);
+                triggerDownload(blobURL, `${text}_barcode.svg`);
+            }
+        }
+
+        function triggerDownload(url, filename) {
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = filename;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Register Service Worker for PWA App Experience
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
+                    self.addEventListener('install', (e) => e.waitUntil(self.skipWaiting()));
+                    self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+                    self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+                `)).catch(err => console.log('SW registration failed: ', err));
+            });
+        }
+
+        window.onload = function() {
+            generateCode();
+        };
+    </script>
+</body>
+</html>
