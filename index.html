@@ -94,9 +94,7 @@
                 <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Recent Generated:</span>
                 <button onclick="clearHistory()" class="text-xs text-rose-500 hover:underline">Clear</button>
             </div>
-            <div id="historyList" class="flex gap-1.5 overflow-x-auto pb-1">
-                <!-- History chips will appear here -->
-            </div>
+            <div id="historyList" class="flex gap-1.5 overflow-x-auto pb-1"></div>
         </div>
 
         <!-- Download Button -->
@@ -116,7 +114,6 @@
         let deferredPrompt;
         let historyArray = JSON.parse(localStorage.getItem('codeHistory')) || [];
 
-        // Dark Mode Toggle
         function toggleDarkMode() {
             const html = document.documentElement;
             const icon = document.getElementById('themeIcon');
@@ -131,13 +128,11 @@
             }
         }
 
-        // Load saved theme
         if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('themeIcon').innerText = '☀️';
         }
 
-        // PWA Install Prompt
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -244,8 +239,6 @@
                     console.error("Barcode error:", e);
                 }
             }
-
-            // Save to history
             addToHistory(text);
         }
 
@@ -307,7 +300,6 @@
             document.body.removeChild(downloadLink);
         }
 
-        // Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
