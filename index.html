@@ -5,41 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barcode & QR Series Generator</title>
     
-    <!-- PWA Meta Tags for App Feel -->
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Code Generator">
+    <meta name="apple-mobile-web-app-title" content="CodeGen App">
 
-    <!-- Inline Web App Manifest -->
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
-        %22name%22: %22Barcode & QR Series Generator%22,
-        %22short_name%22: %22CodeGen%22,
-        %22start_url%22: %22./index.html%22,
-        %22display%22: %22standalone%22,
-        %22background_color%22: %22#f1f5f9%22,
-        %22theme_color%22: %22#4f46e5%22,
-        %22icons%22: [
-            {
-                %22src%22: %22https://cdn-icons-png.flaticon.com/512/1048/1048953.png%22,
-                %22sizes%22: %22512x512%22,
-                %22type%22: %22image/png%22,
-                %22purpose%22: %22any maskable%22
-            }
-        ]
-    }">
-
-    <!-- Tailwind CSS for styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QRCode.js Library -->
+    <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- JsBarcode Library -->
+    <!-- JsBarcode -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </head>
 <body class="bg-slate-100 min-h-screen flex items-center justify-center p-2 sm:p-4 select-none">
 
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-5 my-2">
-        <h1 class="text-xl sm:text-2xl font-bold text-center text-slate-800 mb-4">Barcode & QR Series Generator</h1>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Barcode & QR Generator</h1>
+            <!-- Install App Button (Hidden by default, shows when installable) -->
+            <button id="installBtn" style="display: none;" onclick="installApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1">
+                📥 Install App
+            </button>
+        </div>
 
         <!-- Type Selector Tabs -->
         <div class="flex mb-4 bg-slate-100 p-1 rounded-lg">
@@ -50,14 +39,12 @@
         <!-- Input Field & Increment Controls -->
         <div class="mb-4">
             <label class="block text-sm font-medium text-slate-700 mb-1">Text ya Code (Ex: Ab-zq-14333335):</label>
-            <div class="flex gap-2">
-                <input type="text" id="inputText" value="Ab-zq-14333335" oninput="generateCode()" class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base">
-            </div>
+            <input type="text" id="inputText" value="Ab-zq-14333335" oninput="generateCode()" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base">
         </div>
 
         <!-- Number Step Buttons (+1, +5, +10) -->
         <div class="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <span class="block text-sm font-medium text-slate-700 mb-2">Number Increment/Decrement (+ / -):</span>
+            <span class="block text-sm font-medium text-slate-700 mb-2">Number Increment/Decrement:</span>
             <div class="flex flex-wrap gap-2">
                 <button onclick="modifyNumber(-10)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-sm font-semibold rounded-md transition active:scale-95">-10</button>
                 <button onclick="modifyNumber(-5)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 text-sm font-semibold rounded-md transition active:scale-95">-5</button>
@@ -97,6 +84,27 @@
     <script>
         let currentType = 'qr';
         let currentSize = 200;
+        let deferredPrompt;
+
+        // PWA Install Prompt Capture
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').style.display = 'flex';
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installBtn').style.display = 'none';
+                });
+            }
+        }
 
         function switchTab(type) {
             currentType = type;
@@ -216,14 +224,10 @@
             document.body.removeChild(downloadLink);
         }
 
-        // Register Service Worker for PWA App Experience
+        // Register Service Worker for offline support
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
-                    self.addEventListener('install', (e) => e.waitUntil(self.skipWaiting()));
-                    self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-                    self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-                `)).catch(err => console.log('SW registration failed: ', err));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
             });
         }
 
